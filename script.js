@@ -1,6 +1,5 @@
 function addRow() {
   const tbody = document.getElementById("timeTable");
-
   const row = document.createElement("tr");
 
   row.innerHTML = `
@@ -9,82 +8,144 @@ function addRow() {
     <td><input type="time" onchange="calcularHoras(this)" /></td>
     <td><input type="time" onchange="calcularHoras(this)" /></td>
     <td><input type="time" onchange="calcularHoras(this)" /></td>
-    <td class="horas">-</td>
+    <td class="horas">0</td>
     <td><button onclick="removerLinha(this)">🗑️</button></td>
   `;
 
   tbody.appendChild(row);
+}
+
+function calcularHoras(elemento) {
+  const linha = elemento.closest("tr");
+  const inputs = linha.querySelectorAll("input[type='time']");
+
+  const entrada = getMinutos(inputs[0]?.value);
+  const almocoInicio = getMinutos(inputs[1]?.value);
+  const almocoFim = getMinutos(inputs[2]?.value);
+  const saida = getMinutos(inputs[3]?.value);
+
+  if ([entrada, almocoInicio, almocoFim, saida].some(isNaN)) {
+    linha.querySelector(".horas").textContent = "0";
+    return;
+  }
+
+  const horasTrabalhadas = (saida - entrada) - (almocoFim - almocoInicio);
+  linha.querySelector(".horas").textContent = formatarMinutos(horasTrabalhadas);
+}
+
+function calcularTotal() {
+  let total = 0;
+  document.querySelectorAll(".horas").forEach(cell => {
+    total += getMinutos(cell.textContent);
+  });
+
+  document.getElementById("total").textContent = formatarMinutos(total);
+}
+
+function getMinutos(horario) {
+  if (!horario) return NaN;
+  const [h, m] = horario.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function formatarMinutos(min) {
+  if (isNaN(min) || min < 0) return "0";
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+}
+
+function removerLinha(btn) {
+  btn.closest("tr").remove();
+  calcularTotal();
 }
 
 function adicionarFolga() {
   const tbody = document.getElementById("timeTable");
-
   const row = document.createElement("tr");
+
   row.innerHTML = `
     <td><input type="date" /></td>
-    <td colspan="5" style="text-align: center;">Folga</td>
+    <td colspan="5" style="text-align: center; color: gray;">Folga</td>
     <td><button onclick="removerLinha(this)">🗑️</button></td>
   `;
 
   tbody.appendChild(row);
 }
 
-function calcularHoras(input) {
-  const linha = input.closest("tr");
-  const inputs = linha.querySelectorAll("input");
-
-  const entrada = inputs[1]?.value;
-  const almocoInicio = inputs[2]?.value;
-  const almocoFim = inputs[3]?.value;
-  const saida = inputs[4]?.value;
-
-  if (entrada && saida && almocoInicio && almocoFim) {
-    const tEntrada = parseHora(entrada);
-    const tAlmocoInicio = parseHora(almocoInicio);
-    const tAlmocoFim = parseHora(almocoFim);
-    const tSaida = parseHora(saida);
-
-    let tempoTrabalhado = (tSaida - tEntrada) - (tAlmocoFim - tAlmocoInicio);
-    if (tempoTrabalhado < 0) tempoTrabalhado += 24 * 60;
-
-    const horas = String(Math.floor(tempoTrabalhado / 60)).padStart(2, '0');
-    const minutos = String(tempoTrabalhado % 60).padStart(2, '0');
-
-    linha.querySelector(".horas").textContent = `${horas}:${minutos}`;
-  }
-}
-
-function parseHora(hora) {
-  const [h, m] = hora.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function calcularTotal() {
+function salvarHoras() {
   const linhas = document.querySelectorAll("#timeTable tr");
-  let totalMinutos = 0;
+  const dados = [];
 
   linhas.forEach(linha => {
-    const celula = linha.querySelector(".horas");
-    const valor = celula?.textContent;
+    const inputs = linha.querySelectorAll("input");
+    const celulaHoras = linha.querySelector(".horas");
 
-    if (valor && valor !== "-" && valor.includes(":")) {
-      const [h, m] = valor.split(":").map(Number);
-      totalMinutos += h * 60 + m;
+    if (linha.querySelector("td[colspan='5']")) {
+      const data = inputs[0]?.value || "";
+      dados.push({ tipo: "folga", data });
+    } else {
+      if (inputs.length >= 5 && celulaHoras) {
+        dados.push({
+          tipo: "trabalho",
+          data: inputs[0].value,
+          entrada: inputs[1].value,
+          almocoInicio: inputs[2].value,
+          almocoFim: inputs[3].value,
+          saida: inputs[4].value,
+          horas: celulaHoras.textContent
+        });
+      }
     }
   });
 
-  const totalHoras = String(Math.floor(totalMinutos / 60)).padStart(2, "0");
-  const totalMin = String(totalMinutos % 60).padStart(2, "0");
+  const total = document.getElementById("total").textContent;
 
-  document.getElementById("total").textContent = `Total de horas: ${totalHoras}:${totalMin}`;
+  const resultado = {
+    dias: dados,
+    totalHoras: total
+  };
+
+  localStorage.setItem("chronos_horas", JSON.stringify(resultado));
+  alert("Horas salvas com sucesso!");
 }
 
-function removerLinha(botao) {
-  botao.closest("tr").remove();
-  calcularTotal();
+function carregarHoras() {
+  const salvo = localStorage.getItem("chronos_horas");
+  if (!salvo) return;
+
+  const { dias, totalHoras } = JSON.parse(salvo);
+
+  document.getElementById("timeTable").innerHTML = "";
+
+  dias.forEach(dia => {
+    if (dia.tipo === "folga") {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="date" value="${dia.data}" /></td>
+        <td colspan="5" style="text-align: center; color: gray;">Folga</td>
+        <td><button onclick="removerLinha(this)">🗑️</button></td>
+      `;
+      document.getElementById("timeTable").appendChild(row);
+    } else {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="date" value="${dia.data}" /></td>
+        <td><input type="time" value="${dia.entrada}" onchange="calcularHoras(this)" /></td>
+        <td><input type="time" value="${dia.almocoInicio}" onchange="calcularHoras(this)" /></td>
+        <td><input type="time" value="${dia.almocoFim}" onchange="calcularHoras(this)" /></td>
+        <td><input type="time" value="${dia.saida}" onchange="calcularHoras(this)" /></td>
+        <td class="horas">${dia.horas}</td>
+        <td><button onclick="removerLinha(this)">🗑️</button></td>
+      `;
+      document.getElementById("timeTable").appendChild(row);
+    }
+  });
+
+  document.getElementById("total").textContent = totalHoras;
 }
 
-window.onload = addRow;
-
-   
-   
+window.onload = () => {
+  carregarHoras();
+  if (!localStorage.getItem("chronos_horas")) addRow();
+};
