@@ -1,63 +1,47 @@
-function addDia(data = "", entrada = "", almocoIni = "", almocoFim = "", saida = "") {
+function addRow() {
   const tbody = document.querySelector("#timeTable tbody");
-  const row = document.createElement("tr");
+  const tr = document.createElement("tr");
 
-  row.innerHTML = `
-    <td><input type="date" value="${data}"></td>
-    <td><input type="time" value="${entrada}"></td>
-    <td><input type="time" value="${almocoIni}"></td>
-    <td><input type="time" value="${almocoFim}"></td>
-    <td><input type="time" value="${saida}"></td>
-    <td class="horas">0h 0min</td>
+  tr.innerHTML = `
+    <td><input type="date" onchange="updateTotal()" /></td>
+    <td><input type="time" onchange="updateTotal()" /></td>
+    <td><input type="time" onchange="updateTotal()" /></td>
+    <td><input type="time" onchange="updateTotal()" /></td>
+    <td><input type="time" onchange="updateTotal()" /></td>
+    <td></td>
     <td><button onclick="removerLinha(this)">❌</button></td>
   `;
 
-  tbody.appendChild(row);
-  addListeners(row);
-  updateTotal();
+  tbody.appendChild(tr);
 }
 
-function addFolga(data = "") {
+function addFolga() {
   const tbody = document.querySelector("#timeTable tbody");
-  const row = document.createElement("tr");
-
-  row.innerHTML = `
-    <td><input type="date" value="${data}"></td>
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="date" /></td>
     <td colspan="5">Folga</td>
     <td><button onclick="removerLinha(this)">❌</button></td>
   `;
-
-  tbody.appendChild(row);
-  updateTotal();
+  tbody.appendChild(tr);
 }
 
 function removerLinha(btn) {
   btn.closest("tr").remove();
   updateTotal();
-  salvarDados();
-}
-
-function addListeners(row) {
-  const inputs = row.querySelectorAll("input");
-  inputs.forEach(input => {
-    input.addEventListener("input", () => {
-      updateTotal();
-      salvarDados();
-    });
-  });
 }
 
 function calcularHoras(entrada, almocoIni, almocoFim, saida) {
   if (!entrada || !saida) return 0;
 
-  const toMin = h => {
-    const [hr, min] = h.split(":");
-    return parseInt(hr) * 60 + parseInt(min);
-  };
+  const [eH, eM] = entrada.split(":").map(Number);
+  const [sH, sM] = saida.split(":").map(Number);
+  let total = (sH * 60 + sM) - (eH * 60 + eM);
 
-  let total = toMin(saida) - toMin(entrada);
   if (almocoIni && almocoFim) {
-    total -= toMin(almocoFim) - toMin(almocoIni);
+    const [aIH, aIM] = almocoIni.split(":").map(Number);
+    const [aFH, aFM] = almocoFim.split(":").map(Number);
+    total -= (aFH * 60 + aFM) - (aIH * 60 + aIM);
   }
 
   return total > 0 ? total : 0;
@@ -75,14 +59,13 @@ function updateTotal() {
     const almocoIni = tds[2].querySelector("input")?.value;
     const almocoFim = tds[3].querySelector("input")?.value;
     const saida = tds[4].querySelector("input")?.value;
-    const horasTd = tds[5];
 
     const minutos = calcularHoras(entrada, almocoIni, almocoFim, saida);
     totalMinutos += minutos;
 
     const h = Math.floor(minutos / 60);
     const m = minutos % 60;
-    horasTd.innerText = `${h}h ${m}min`;
+    tds[5].innerText = `${h}h ${m}min`;
   });
 
   const totalH = Math.floor(totalMinutos / 60);
@@ -91,50 +74,90 @@ function updateTotal() {
 }
 
 function salvarDados() {
-  const data = [];
   const rows = document.querySelectorAll("#timeTable tbody tr");
+  const dados = [];
 
   rows.forEach(row => {
     const tds = row.querySelectorAll("td");
-    if (tds.length < 7 || tds[1].hasAttribute("colspan")) {
-      data.push({ tipo: "folga", data: tds[0].querySelector("input")?.value });
+    if (tds.length < 7) return;
+
+    const data = tds[0].querySelector("input")?.value;
+    if (tds[1].hasAttribute("colspan")) {
+      dados.push({ data, tipo: "Folga" });
     } else {
-      data.push({
-        tipo: "dia",
-        data: tds[0].querySelector("input")?.value,
-        entrada: tds[1].querySelector("input")?.value,
-        almocoIni: tds[2].querySelector("input")?.value,
-        almocoFim: tds[3].querySelector("input")?.value,
-        saida: tds[4].querySelector("input")?.value
-      });
+      const entrada = tds[1].querySelector("input")?.value;
+      const almocoIni = tds[2].querySelector("input")?.value;
+      const almocoFim = tds[3].querySelector("input")?.value;
+      const saida = tds[4].querySelector("input")?.value;
+      const horas = tds[5].innerText;
+      dados.push({ data, entrada, almocoIni, almocoFim, saida, horas });
     }
   });
 
-  localStorage.setItem("dadosCHT", JSON.stringify(data));
-}
-
-function carregarDados() {
-  const dados = JSON.parse(localStorage.getItem("dadosCHT") || "[]");
-  dados.forEach(dado => {
-    if (dado.tipo === "folga") {
-      addFolga(dado.data);
-    } else {
-      addDia(dado.data, dado.entrada, dado.almocoIni, dado.almocoFim, dado.saida);
-    }
-  });
-}
-
-function baixarJSON() {
-  const dados = localStorage.getItem("dadosCHT");
-  const blob = new Blob([dados], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
-  a.download = "cht-dados.json";
+  a.download = "horas-trabalhadas.json";
   a.click();
-
   URL.revokeObjectURL(url);
 }
 
-window.onload = carregarDados;
+function exportarExcel() {
+  const wb = XLSX.utils.book_new();
+  const dados = [["Data", "Entrada", "Almoço Início", "Almoço Fim", "Saída", "Horas Trabalhadas"]];
+
+  document.querySelectorAll("#timeTable tbody tr").forEach(row => {
+    const tds = row.querySelectorAll("td");
+    const data = tds[0]?.querySelector("input")?.value || "";
+    if (tds[1]?.hasAttribute("colspan")) {
+      dados.push([data, "Folga", "", "", "", ""]);
+    } else {
+      const entrada = tds[1]?.querySelector("input")?.value || "";
+      const almocoIni = tds[2]?.querySelector("input")?.value || "";
+      const almocoFim = tds[3]?.querySelector("input")?.value || "";
+      const saida = tds[4]?.querySelector("input")?.value || "";
+      const horas = tds[5]?.innerText || "";
+      dados.push([data, entrada, almocoIni, almocoFim, saida, horas]);
+    }
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(dados);
+  XLSX.utils.book_append_sheet(wb, ws, "Horas");
+  XLSX.writeFile(wb, "horas-trabalhadas.xlsx");
+}
+
+function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text("Relatório de Horas Trabalhadas", 20, 20);
+
+  let y = 30;
+  document.querySelectorAll("#timeTable tbody tr").forEach(row => {
+    const tds = row.querySelectorAll("td");
+    const data = tds[0]?.querySelector("input")?.value || "";
+
+    if (tds[1]?.hasAttribute("colspan")) {
+      doc.text(`${data} - FOLGA`, 20, y);
+    } else {
+      const entrada = tds[1]?.querySelector("input")?.value || "";
+      const almocoIni = tds[2]?.querySelector("input")?.value || "";
+      const almocoFim = tds[3]?.querySelector("input")?.value || "";
+      const saida = tds[4]?.querySelector("input")?.value || "";
+      const horas = tds[5]?.innerText || "";
+      doc.text(`${data} | ${entrada} - ${almocoIni}/${almocoFim} - ${saida} = ${horas}`, 20, y);
+    }
+
+    y += 10;
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+  });
+
+  doc.save("relatorio-horas.pdf");
+}
+
+     
+  
