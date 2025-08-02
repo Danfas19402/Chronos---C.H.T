@@ -8,7 +8,11 @@ body {
 
 h1 {
   color: #333;
-  font-size: 70px;
+  font-size: 1.8em;
+}
+
+.buttons {
+  margin-bottom: 10px;
 }
 
 .table-wrapper {
@@ -32,7 +36,7 @@ th, td {
 }
 
 button {
-  margin: 10px;
+  margin: 5px;
   padding: 10px 20px;
   background-color: #1a73e8;
   color: white;
@@ -50,6 +54,13 @@ input[type="time"], input[type="date"] {
   padding: 5px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Estilo para linha de folga */
+tr td[colspan="5"] {
+  font-style: italic;
+  background-color: #f0f0f0;
+  color: gray;
 }
 
 /* Responsivo */
