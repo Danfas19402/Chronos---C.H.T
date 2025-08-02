@@ -1,17 +1,14 @@
 body {
   font-family: Arial, sans-serif;
-  background: #f8f9fa;
+  background-color: #f9fafb;
   margin: 0;
-  padding: 20px;
+  padding: 0;
 }
 
 .container {
-  max-width: 800px;
-  margin: auto;
-  background: #fff;
+  max-width: 960px;
+  margin: 0 auto;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #ccc;
 }
 
 h1 {
@@ -19,50 +16,63 @@ h1 {
   color: #333;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-}
-
-th, td {
-  padding: 8px;
-  text-align: center;
-  border: 1px solid #ccc;
+.buttons, .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
 }
 
 button {
-  padding: 8px 12px;
-  margin: 5px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
+  padding: 10px 20px;
   background-color: #007bff;
-  color: #fff;
-  transition: background 0.3s ease;
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-.botoes {
-  text-align: center;
-  margin-top: 10px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
 }
 
-@media (max-width: 600px) {
-  table, thead, tbody, th, td, tr {
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+table input[type="time"], table input[type="date"] {
+  width: 100%;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+footer {
+  text-align: center;
+  margin-top: 40px;
+  color: #555;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  table {
     font-size: 12px;
+  }
+
+  .buttons, .actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   button {
     width: 100%;
-    margin: 5px 0;
   }
-}
-
-tr td[colspan="5"] {
-  font-style: italic;
-  background-color: #f0f0f0;
 }
