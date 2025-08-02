@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chronos - C.H.T</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Chronos - C.H.T</h1>
+
+  <button onclick="addRow()">+ Adicionar mais um dia</button>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Entrada</th>
+          <th>Início Almoço</th>
+          <th>Fim Almoço</th>
+          <th>Saída</th>
+          <th>Horas Trabalhadas</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="timeTable">
+        <!-- Linhas dinâmicas aqui -->
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="calcularTotal()">Calcular Total</button>
+  <h2 id="total">Total de horas: 00:00</h2>
+
+  <h3>Desenvolvido por: Daniel Fealsi</h3>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
