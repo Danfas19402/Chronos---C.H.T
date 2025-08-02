@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,18 +7,17 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Chronos - C-H-T</h1>
+  <h1>🕒 Chronos - C-H-T</h1>
 
   <div class="buttons">
-    <button onclick="addRow()">+ Adicionar mais um dia</button>
-    <button onclick="addFolga()">💤 Folga</button>
-    <button onclick="saveData()">💾 Salvar</button>
-    <button onclick="downloadData()">⬇️ Baixar Horas</button>
-    <button onclick="clearData()">🗑️ Limpar Tudo</button>
+    <button onclick="addDia()">➕ Adicionar mais um dia</button>
+    <button onclick="addFolga()">🛌 Folga</button>
+    <button onclick="salvarDados()">💾 Salvar Dados</button>
+    <button onclick="baixarJSON()">⬇️ Baixar JSON</button>
   </div>
 
   <div class="table-container">
-    <table>
+    <table id="timeTable">
       <thead>
         <tr>
           <th>Data</th>
@@ -30,18 +29,19 @@
           <th>Remover</th>
         </tr>
       </thead>
-      <tbody id="timeTable"></tbody>
+      <tbody></tbody>
     </table>
   </div>
 
-  <div class="total" id="totalHoras">Total: 0h</div>
+  <div class="total" id="totalHoras">Total: 0h 0min</div>
   <br>
-
   <h3>Autor: Daniel Fealsi</h3>
 
   <script src="script.js"></script>
 </body>
 </html>
 
-        
+       
+
+
    
