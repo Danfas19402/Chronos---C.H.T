@@ -2,42 +2,46 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chronos - C.H.T</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Chronos - C.H.T</h1>
-
-  <div class="buttons">
-    <button onclick="addRow()">+ Adicionar mais um dia</button>
-    <button onclick="adicionarFolga()">💤 Folga</button>
-  </div>
-
-  <div class="table-wrapper">
+  <div class="container">
+    <h1>Chronos - C.H.T</h1>
     <table>
       <thead>
         <tr>
           <th>Data</th>
           <th>Entrada</th>
-          <th>Início Almoço</th>
-          <th>Fim Almoço</th>
+          <th>Almoço Início</th>
+          <th>Almoço Fim</th>
           <th>Saída</th>
           <th>Horas Trabalhadas</th>
-          <th>Ações</th>
+          <th>Remover</th>
         </tr>
       </thead>
       <tbody id="timeTable">
-        <!-- Linhas dinâmicas aqui -->
+        <!-- Linhas serão adicionadas via JS -->
       </tbody>
     </table>
+
+    <div class="botoes">
+      <button onclick="addRow()">+ Adicionar mais um dia</button>
+      <button onclick="adicionarFolga()">💤 Folga</button>
+    </div>
+
+    <p><strong>Total de Horas Trabalhadas:</strong> <span id="total">0</span></p>
+
+    <div class="botoes">
+      <button onclick="calcularTotal()">🧮 Calcular Total</button>
+      <button onclick="salvarHoras()">💾 Salvar Horas</button>
+       <h3>Desenvolvido por: Daniel Fealsi</h3>
+
+    </div>
   </div>
 
-  <button onclick="calcularTotal()">Calcular Total</button>
-  <h2 id="total">Total de horas: 00:00</h2>
-
-  <h3>Desenvolvido por: Daniel Fealsi</h3>
-
+ 
   <script src="script.js"></script>
 </body>
-</h
+</html>
