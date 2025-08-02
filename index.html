@@ -4,16 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chronos - C-H-T</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <h1>🕒 Chronos - C-H-T</h1>
 
   <div class="buttons">
-    <button onclick="addDia()">➕ Adicionar mais um dia</button>
-    <button onclick="addFolga()">🛌 Folga</button>
-    <button onclick="salvarDados()">💾 Salvar Dados</button>
-    <button onclick="baixarJSON()">⬇️ Baixar JSON</button>
+    <button onclick="addRow()">Adicionar mais um dia</button>
+    <button onclick="addFolga()">Folga</button>
+    <button onclick="salvarDados()">💾 Salvar</button>
+    <button onclick="exportarExcel()">📊 Excel</button>
+    <button onclick="exportarPDF()">📄 PDF</button>
+    <button onclick="window.print()">🖨️ Imprimir</button>
   </div>
 
   <div class="table-container">
@@ -34,14 +36,16 @@
   </div>
 
   <div class="total" id="totalHoras">Total: 0h 0min</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
   <br>
   <h3>Autor: Daniel Fealsi</h3>
-
-  <script src="script.js"></script>
 </body>
 </html>
 
-       
+  
 
 
    
