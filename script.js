@@ -16,14 +16,27 @@ function addRow() {
   tbody.appendChild(row);
 }
 
+function adicionarFolga() {
+  const tbody = document.getElementById("timeTable");
+
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td><input type="date" /></td>
+    <td colspan="5" style="text-align: center;">Folga</td>
+    <td><button onclick="removerLinha(this)">🗑️</button></td>
+  `;
+
+  tbody.appendChild(row);
+}
+
 function calcularHoras(input) {
   const linha = input.closest("tr");
   const inputs = linha.querySelectorAll("input");
 
-  const entrada = inputs[1].value;
-  const almocoInicio = inputs[2].value;
-  const almocoFim = inputs[3].value;
-  const saida = inputs[4].value;
+  const entrada = inputs[1]?.value;
+  const almocoInicio = inputs[2]?.value;
+  const almocoFim = inputs[3]?.value;
+  const saida = inputs[4]?.value;
 
   if (entrada && saida && almocoInicio && almocoFim) {
     const tEntrada = parseHora(entrada);
@@ -51,8 +64,10 @@ function calcularTotal() {
   let totalMinutos = 0;
 
   linhas.forEach(linha => {
-    const valor = linha.querySelector(".horas").textContent;
-    if (valor && valor !== "-") {
+    const celula = linha.querySelector(".horas");
+    const valor = celula?.textContent;
+
+    if (valor && valor !== "-" && valor.includes(":")) {
       const [h, m] = valor.split(":").map(Number);
       totalMinutos += h * 60 + m;
     }
@@ -69,5 +84,7 @@ function removerLinha(botao) {
   calcularTotal();
 }
 
-// Linha inicial
 window.onload = addRow;
+
+   
+   
