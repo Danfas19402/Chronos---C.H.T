@@ -1,124 +1,182 @@
-function criarInput(tipo) {
+document.addEventListener("DOMContentLoaded", () => {
+  loadSavedData();
+  updateTotal();
+});
+
+function createInput(type = "time") {
   const input = document.createElement("input");
-  input.type = tipo;
+  input.type = type;
+  input.oninput = updateTotal;
   return input;
 }
 
-function criarCelulaComInput(tipo) {
+function addRow(data = {}) {
+  const tbody = document.getElementById("timeTable");
+
+  const row = document.createElement("tr");
+
+  const date = createInput("date");
+  date.value = data.date || "";
+
+  const entrada = createInput();
+  entrada.value = data.entrada || "";
+
+  const almocoIni = createInput();
+  almocoIni.value = data.almocoIni || "";
+
+  const almocoFim = createInput();
+  almocoFim.value = data.almocoFim || "";
+
+  const saida = createInput();
+  saida.value = data.saida || "";
+
+  const horas = document.createElement("td");
+  horas.className = "horas";
+  horas.innerText = "0h";
+
+  const remover = document.createElement("button");
+  remover.innerText = "🗑️";
+  remover.onclick = () => {
+    tbody.removeChild(row);
+    updateTotal();
+  };
+
+  row.appendChild(createTd(date));
+  row.appendChild(createTd(entrada));
+  row.appendChild(createTd(almocoIni));
+  row.appendChild(createTd(almocoFim));
+  row.appendChild(createTd(saida));
+  row.appendChild(horas);
+  row.appendChild(createTd(remover));
+
+  tbody.appendChild(row);
+
+  updateTotal();
+}
+
+function addFolga(dateValue = "") {
+  const tbody = document.getElementById("timeTable");
+  const row = document.createElement("tr");
+
+  const date = createInput("date");
+  date.value = dateValue;
+
+  row.innerHTML = `
+    <td><input type="date" value="${dateValue}"/></td>
+    <td colspan="5" style="text-align:center; color:gray;">Folga</td>
+    <td><button onclick="removerLinha(this)">🗑️</button></td>
+  `;
+
+  tbody.appendChild(row);
+}
+
+function createTd(child) {
   const td = document.createElement("td");
-  const input = criarInput(tipo);
-  td.appendChild(input);
-  return { td, input };
+  td.appendChild(child);
+  return td;
 }
 
-function adicionarDia() {
-  const tbody = document.querySelector("#tabelaHoras tbody");
-  const tr = document.createElement("tr");
-
-  const { td: tdData } = criarCelulaComInput("date");
-  const { td: tdEntrada, input: entrada } = criarCelulaComInput("time");
-  const { td: tdAlmocoInicio, input: almocoInicio } = criarCelulaComInput("time");
-  const { td: tdAlmocoFim, input: almocoFim } = criarCelulaComInput("time");
-  const { td: tdSaida, input: saida } = criarCelulaComInput("time");
-
-  const tdHoras = document.createElement("td");
-  tdHoras.textContent = "-";
-
-  const tdAcao = document.createElement("td");
-  const btnRemover = document.createElement("button");
-  btnRemover.textContent = "🗑️";
-  btnRemover.onclick = () => tr.remove();
-  tdAcao.appendChild(btnRemover);
-
-  [entrada, almocoInicio, almocoFim, saida].forEach(input => {
-    input.onchange = () => {
-      if (entrada.value && almocoInicio.value && almocoFim.value && saida.value) {
-        const inicio = new Date("1970-01-01T" + entrada.value);
-        const almocoI = new Date("1970-01-01T" + almocoInicio.value);
-        const almocoF = new Date("1970-01-01T" + almocoFim.value);
-        const fim = new Date("1970-01-01T" + saida.value);
-
-        const horasManha = (almocoI - inicio) / (1000 * 60 * 60);
-        const horasTarde = (fim - almocoF) / (1000 * 60 * 60);
-        const total = horasManha + horasTarde;
-
-        const horas = Math.floor(total);
-        const minutos = Math.round((total - horas) * 60);
-        tdHoras.textContent = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
-      }
-    };
-  });
-
-  tr.append(tdData, tdEntrada, tdAlmocoInicio, tdAlmocoFim, tdSaida, tdHoras, tdAcao);
-  tbody.appendChild(tr);
+function removerLinha(btn) {
+  const row = btn.parentElement.parentElement;
+  row.remove();
+  updateTotal();
 }
 
-function adicionarFolga() {
-  const tbody = document.querySelector("#tabelaHoras tbody");
-  const tr = document.createElement("tr");
+function calcularHoras(entrada, almocoIni, almocoFim, saida) {
+  if (!entrada || !saida) return 0;
 
-  const tdData = criarInput("date");
-  const td = document.createElement("td");
-  td.colSpan = 5;
-  td.textContent = "Folga";
+  const [h1, m1] = entrada.split(":").map(Number);
+  const [h2, m2] = saida.split(":").map(Number);
+  let totalMin = (h2 * 60 + m2) - (h1 * 60 + m1);
 
-  const tdHoras = document.createElement("td");
-  tdHoras.textContent = "00:00";
+  if (almocoIni && almocoFim) {
+    const [ha1, ma1] = almocoIni.split(":").map(Number);
+    const [ha2, ma2] = almocoFim.split(":").map(Number);
+    totalMin -= (ha2 * 60 + ma2) - (ha1 * 60 + ma1);
+  }
 
-  const tdAcao = document.createElement("td");
-  const btnRemover = document.createElement("button");
-  btnRemover.textContent = "🗑️";
-  btnRemover.onclick = () => tr.remove();
-  tdAcao.appendChild(btnRemover);
-
-  const tdDataWrapper = document.createElement("td");
-  tdDataWrapper.appendChild(tdData);
-
-  tr.append(tdDataWrapper, td, tdHoras, tdAcao);
-  tbody.appendChild(tr);
+  return Math.max(totalMin, 0);
 }
 
-function calcularTotal() {
-  const rows = document.querySelectorAll("#tabelaHoras tbody tr");
+function updateTotal() {
   let totalMinutos = 0;
+  const rows = document.querySelectorAll("#timeTable tr");
 
   rows.forEach(row => {
-    const td = row.cells[5];
-    if (td && td.textContent.includes(":")) {
-      const [h, m] = td.textContent.split(":").map(Number);
-      totalMinutos += h * 60 + m;
+    const tds = row.querySelectorAll("td");
+
+    if (tds.length < 7 || tds[1].colSpan) return; // pular folgas
+
+    const entrada = tds[1].querySelector("input")?.value;
+    const almocoIni = tds[2].querySelector("input")?.value;
+    const almocoFim = tds[3].querySelector("input")?.value;
+    const saida = tds[4].querySelector("input")?.value;
+    const horasTd = tds[5];
+
+    const minutos = calcularHoras(entrada, almocoIni, almocoFim, saida);
+    totalMinutos += minutos;
+
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    horasTd.innerText = `${h}h ${m}min`;
+  });
+
+  const totalH = Math.floor(totalMinutos / 60);
+  const totalM = totalMinutos % 60;
+  document.getElementById("totalHoras").innerText = `Total: ${totalH}h ${totalM}min`;
+}
+
+function saveData() {
+  const rows = document.querySelectorAll("#timeTable tr");
+  const dados = [];
+
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll("input");
+    const tds = row.querySelectorAll("td");
+
+    if (tds.length === 7 && tds[1].colSpan) {
+      // Folga
+      dados.push({ tipo: "folga", date: inputs[0].value });
+    } else if (inputs.length >= 5) {
+      dados.push({
+        tipo: "dia",
+        date: inputs[0].value,
+        entrada: inputs[1].value,
+        almocoIni: inputs[2].value,
+        almocoFim: inputs[3].value,
+        saida: inputs[4].value,
+      });
     }
   });
 
-  const totalHoras = Math.floor(totalMinutos / 60);
-  const minutos = totalMinutos % 60;
-
-  document.getElementById("totalHoras").textContent =
-    "Total de horas: " + String(totalHoras).padStart(2, '0') + ":" + String(minutos).padStart(2, '0');
+  localStorage.setItem("chtData", JSON.stringify(dados));
+  alert("Dados salvos!");
 }
 
-function salvarHoras() {
-  const dados = [];
-  const rows = document.querySelectorAll("#tabelaHoras tbody tr");
+function loadSavedData() {
+  const dados = JSON.parse(localStorage.getItem("chtData") || "[]");
 
-  rows.forEach(row => {
-    const data = row.cells[0]?.querySelector("input")?.value || "";
-    const entrada = row.cells[1]?.querySelector("input")?.value || "";
-    const almocoInicio = row.cells[2]?.querySelector("input")?.value || "";
-    const almocoFim = row.cells[3]?.querySelector("input")?.value || "";
-    const saida = row.cells[4]?.querySelector("input")?.value || "";
-    const total = row.cells[5]?.textContent || "00:00";
-
-    dados.push({ data, entrada, almocoInicio, almocoFim, saida, total });
+  dados.forEach(dia => {
+    if (dia.tipo === "dia") addRow(dia);
+    else if (dia.tipo === "folga") addFolga(dia.date);
   });
+}
 
-  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+function downloadData() {
+  const dados = localStorage.getItem("chtData") || "[]";
+  const blob = new Blob([dados], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement("a");
   a.href = url;
   a.download = "horas_trabalhadas.json";
   a.click();
-
   URL.revokeObjectURL(url);
+}
+
+function clearData() {
+  if (confirm("Deseja realmente apagar tudo?")) {
+    localStorage.removeItem("chtData");
+    document.getElementById("timeTable").innerHTML = "";
+    updateTotal();
+  }
 }
