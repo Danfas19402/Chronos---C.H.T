@@ -1,151 +1,124 @@
-function addRow() {
-  const tbody = document.getElementById("timeTable");
-  const row = document.createElement("tr");
-
-  row.innerHTML = `
-    <td><input type="date" /></td>
-    <td><input type="time" onchange="calcularHoras(this)" /></td>
-    <td><input type="time" onchange="calcularHoras(this)" /></td>
-    <td><input type="time" onchange="calcularHoras(this)" /></td>
-    <td><input type="time" onchange="calcularHoras(this)" /></td>
-    <td class="horas">0</td>
-    <td><button onclick="removerLinha(this)">🗑️</button></td>
-  `;
-
-  tbody.appendChild(row);
+function criarInput(tipo) {
+  const input = document.createElement("input");
+  input.type = tipo;
+  return input;
 }
 
-function calcularHoras(elemento) {
-  const linha = elemento.closest("tr");
-  const inputs = linha.querySelectorAll("input[type='time']");
-
-  const entrada = getMinutos(inputs[0]?.value);
-  const almocoInicio = getMinutos(inputs[1]?.value);
-  const almocoFim = getMinutos(inputs[2]?.value);
-  const saida = getMinutos(inputs[3]?.value);
-
-  if ([entrada, almocoInicio, almocoFim, saida].some(isNaN)) {
-    linha.querySelector(".horas").textContent = "0";
-    return;
-  }
-
-  const horasTrabalhadas = (saida - entrada) - (almocoFim - almocoInicio);
-  linha.querySelector(".horas").textContent = formatarMinutos(horasTrabalhadas);
+function criarCelulaComInput(tipo) {
+  const td = document.createElement("td");
+  const input = criarInput(tipo);
+  td.appendChild(input);
+  return { td, input };
 }
 
-function calcularTotal() {
-  let total = 0;
-  document.querySelectorAll(".horas").forEach(cell => {
-    total += getMinutos(cell.textContent);
+function adicionarDia() {
+  const tbody = document.querySelector("#tabelaHoras tbody");
+  const tr = document.createElement("tr");
+
+  const { td: tdData } = criarCelulaComInput("date");
+  const { td: tdEntrada, input: entrada } = criarCelulaComInput("time");
+  const { td: tdAlmocoInicio, input: almocoInicio } = criarCelulaComInput("time");
+  const { td: tdAlmocoFim, input: almocoFim } = criarCelulaComInput("time");
+  const { td: tdSaida, input: saida } = criarCelulaComInput("time");
+
+  const tdHoras = document.createElement("td");
+  tdHoras.textContent = "-";
+
+  const tdAcao = document.createElement("td");
+  const btnRemover = document.createElement("button");
+  btnRemover.textContent = "🗑️";
+  btnRemover.onclick = () => tr.remove();
+  tdAcao.appendChild(btnRemover);
+
+  [entrada, almocoInicio, almocoFim, saida].forEach(input => {
+    input.onchange = () => {
+      if (entrada.value && almocoInicio.value && almocoFim.value && saida.value) {
+        const inicio = new Date("1970-01-01T" + entrada.value);
+        const almocoI = new Date("1970-01-01T" + almocoInicio.value);
+        const almocoF = new Date("1970-01-01T" + almocoFim.value);
+        const fim = new Date("1970-01-01T" + saida.value);
+
+        const horasManha = (almocoI - inicio) / (1000 * 60 * 60);
+        const horasTarde = (fim - almocoF) / (1000 * 60 * 60);
+        const total = horasManha + horasTarde;
+
+        const horas = Math.floor(total);
+        const minutos = Math.round((total - horas) * 60);
+        tdHoras.textContent = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}`;
+      }
+    };
   });
 
-  document.getElementById("total").textContent = formatarMinutos(total);
-}
-
-function getMinutos(horario) {
-  if (!horario) return NaN;
-  const [h, m] = horario.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function formatarMinutos(min) {
-  if (isNaN(min) || min < 0) return "0";
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-}
-
-function removerLinha(btn) {
-  btn.closest("tr").remove();
-  calcularTotal();
+  tr.append(tdData, tdEntrada, tdAlmocoInicio, tdAlmocoFim, tdSaida, tdHoras, tdAcao);
+  tbody.appendChild(tr);
 }
 
 function adicionarFolga() {
-  const tbody = document.getElementById("timeTable");
-  const row = document.createElement("tr");
+  const tbody = document.querySelector("#tabelaHoras tbody");
+  const tr = document.createElement("tr");
 
-  row.innerHTML = `
-    <td><input type="date" /></td>
-    <td colspan="5" style="text-align: center; color: gray;">Folga</td>
-    <td><button onclick="removerLinha(this)">🗑️</button></td>
-  `;
+  const tdData = criarInput("date");
+  const td = document.createElement("td");
+  td.colSpan = 5;
+  td.textContent = "Folga";
 
-  tbody.appendChild(row);
+  const tdHoras = document.createElement("td");
+  tdHoras.textContent = "00:00";
+
+  const tdAcao = document.createElement("td");
+  const btnRemover = document.createElement("button");
+  btnRemover.textContent = "🗑️";
+  btnRemover.onclick = () => tr.remove();
+  tdAcao.appendChild(btnRemover);
+
+  const tdDataWrapper = document.createElement("td");
+  tdDataWrapper.appendChild(tdData);
+
+  tr.append(tdDataWrapper, td, tdHoras, tdAcao);
+  tbody.appendChild(tr);
+}
+
+function calcularTotal() {
+  const rows = document.querySelectorAll("#tabelaHoras tbody tr");
+  let totalMinutos = 0;
+
+  rows.forEach(row => {
+    const td = row.cells[5];
+    if (td && td.textContent.includes(":")) {
+      const [h, m] = td.textContent.split(":").map(Number);
+      totalMinutos += h * 60 + m;
+    }
+  });
+
+  const totalHoras = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+
+  document.getElementById("totalHoras").textContent =
+    "Total de horas: " + String(totalHoras).padStart(2, '0') + ":" + String(minutos).padStart(2, '0');
 }
 
 function salvarHoras() {
-  const linhas = document.querySelectorAll("#timeTable tr");
   const dados = [];
+  const rows = document.querySelectorAll("#tabelaHoras tbody tr");
 
-  linhas.forEach(linha => {
-    const inputs = linha.querySelectorAll("input");
-    const celulaHoras = linha.querySelector(".horas");
+  rows.forEach(row => {
+    const data = row.cells[0]?.querySelector("input")?.value || "";
+    const entrada = row.cells[1]?.querySelector("input")?.value || "";
+    const almocoInicio = row.cells[2]?.querySelector("input")?.value || "";
+    const almocoFim = row.cells[3]?.querySelector("input")?.value || "";
+    const saida = row.cells[4]?.querySelector("input")?.value || "";
+    const total = row.cells[5]?.textContent || "00:00";
 
-    if (linha.querySelector("td[colspan='5']")) {
-      const data = inputs[0]?.value || "";
-      dados.push({ tipo: "folga", data });
-    } else {
-      if (inputs.length >= 5 && celulaHoras) {
-        dados.push({
-          tipo: "trabalho",
-          data: inputs[0].value,
-          entrada: inputs[1].value,
-          almocoInicio: inputs[2].value,
-          almocoFim: inputs[3].value,
-          saida: inputs[4].value,
-          horas: celulaHoras.textContent
-        });
-      }
-    }
+    dados.push({ data, entrada, almocoInicio, almocoFim, saida, total });
   });
 
-  const total = document.getElementById("total").textContent;
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
 
-  const resultado = {
-    dias: dados,
-    totalHoras: total
-  };
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "horas_trabalhadas.json";
+  a.click();
 
-  localStorage.setItem("chronos_horas", JSON.stringify(resultado));
-  alert("Horas salvas com sucesso!");
+  URL.revokeObjectURL(url);
 }
-
-function carregarHoras() {
-  const salvo = localStorage.getItem("chronos_horas");
-  if (!salvo) return;
-
-  const { dias, totalHoras } = JSON.parse(salvo);
-
-  document.getElementById("timeTable").innerHTML = "";
-
-  dias.forEach(dia => {
-    if (dia.tipo === "folga") {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="date" value="${dia.data}" /></td>
-        <td colspan="5" style="text-align: center; color: gray;">Folga</td>
-        <td><button onclick="removerLinha(this)">🗑️</button></td>
-      `;
-      document.getElementById("timeTable").appendChild(row);
-    } else {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="date" value="${dia.data}" /></td>
-        <td><input type="time" value="${dia.entrada}" onchange="calcularHoras(this)" /></td>
-        <td><input type="time" value="${dia.almocoInicio}" onchange="calcularHoras(this)" /></td>
-        <td><input type="time" value="${dia.almocoFim}" onchange="calcularHoras(this)" /></td>
-        <td><input type="time" value="${dia.saida}" onchange="calcularHoras(this)" /></td>
-        <td class="horas">${dia.horas}</td>
-        <td><button onclick="removerLinha(this)">🗑️</button></td>
-      `;
-      document.getElementById("timeTable").appendChild(row);
-    }
-  });
-
-  document.getElementById("total").textContent = totalHoras;
-}
-
-window.onload = () => {
-  carregarHoras();
-  if (!localStorage.getItem("chronos_horas")) addRow();
-};
