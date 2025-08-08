@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Chronos - C-H-T</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- libs para export -->
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <h1>🕒 Chronos - C-H-T</h1>
 
   <div class="buttons">
-    <button onclick="addRow()">Adicionar mais um dia</button>
-    <button onclick="addFolga()">Folga</button>
-    <button onclick="salvarDados()">💾 Salvar</button>
-    <button onclick="exportarExcel()">📊 Excel</button>
-    <button onclick="exportarPDF()">📄 PDF</button>
+    <button onclick="addRow()">➕ Adicionar dia</button>
+    <button onclick="addFolga()">💤 Folga</button>
+    <button onclick="saveData()">💾 Salvar (local)</button>
+    <button onclick="exportExcel()">📊 Exportar Excel</button>
+    <button onclick="exportPDF()">📄 Exportar PDF</button>
     <button onclick="window.print()">🖨️ Imprimir</button>
+    <button onclick="clearAll()">🧹 Limpar tudo</button>
   </div>
 
-  <div class="table-container">
+  <div class="table-wrapper">
     <table id="timeTable">
       <thead>
         <tr>
           <th>Data</th>
           <th>Entrada</th>
           <th>Almoço Início</th>
-          <th>Almoço Fim</th>
+          <th>Retorno Almoço</th>
           <th>Saída</th>
           <th>Horas Trabalhadas</th>
           <th>Remover</th>
@@ -35,15 +40,14 @@
     </table>
   </div>
 
-  <div class="total" id="totalHoras">Total: 0h 0min</div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-  <script src="script.js"></script>
+  <div class="total" id="total">Total: 0h 0min</div>
   <br>
   <h3>Autor: Daniel Fealsi</h3>
+
+  <script src="script.js"></script>
 </body>
 </html>
+
 
   
 
